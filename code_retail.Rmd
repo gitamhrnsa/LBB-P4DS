@@ -1,0 +1,139 @@
+---
+title: "LBB: Retail Dataset "
+author: "Gita"
+date: '2022-05-20'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Read Data Retail
+retail<-read.csv("data_input/retail.csv")
+```
+
+#Introduction
+
+Data ini berisi catatan penjualan termasuk keuntungan atau kerugian dari sebuah perusahaan retail yang menjual perlengkapan Kantor, barang Furnitur dan barang-barang Teknologi. Selain itu, juga berisi data customer dari berbagai segmen, jenis pengiriman, tanggal pemesanan serta tanggal pengiriman barang. 
+
+Data retail yang digunakan terdiri dari Order ID, Order Date, Ship Date, Ship Mode, Customer ID, Segment	Product ID,	Category,	Sub-Category,	Product Name,	Sales	Quantity,	Discount, dan	Profit.
+
+
+# Data
+Data retail akan diinput dan diolah terlebih dahulu 
+
+## Input Data
+
+```{r}
+#Input Data
+retail<-read.csv("data_input/retail.csv")
+```
+
+## Checking Data Type
+```{r}
+#Cek Tipe Data
+str(retail)
+```
+Data di atas masih memiliki beberapa tipe data yang salah
+
+## Data Cleansing
+```{r}
+#Penggantian Tipe Data
+
+retail$Row.ID <- as.character(retail$Row.ID)
+retail$Segment <- as.factor(retail$Segment)
+retail$Ship.Mode <- as.factor(retail$Ship.Mode)
+retail$Category <- as.factor(retail$Category)
+retail$Sub.Category <- as.factor(retail$Sub.Category)
+retail$Ship.Date <- as.Date(retail$Ship.Date, format="%m/%d/%y")
+retail$Order.Date <- as.Date(retail$Order.Date, format="%m/%d/%y")
+
+str(retail)
+```
+
+
+Melakukan pengecekan missing value
+```{r}
+colSums(is.na(retail))
+```
+
+
+Subsetting data dengan membuang column yang tidak digunakan
+```{r}
+retail_clean <- retail[,c(3:15)]
+retail_clean
+```
+
+
+## Summary Data
+Melihat summary dari data retail
+```{r}
+summary(retail_clean)
+```
+Berdasarkan summary di atas didapatkan hasil:
+- Orderan pertama dilakukan pada tanggal 3 Januari 2014 dan orderan terakhir dilakukan pada tanggal 30 Desember 2017
+- Pengiriman pertama dilakukan pada tanggal 7 Januari 2014 dan pengiriman terakhir dilakukan pada tanggal 5 Januari 2018
+- Standard class adalah ship mode yang paling banyak digunakan, sedangkan same day adalah ship mode yang paling sedikit digunakan
+- Pembeli terbanyak yang berasal dari segmen konsumen dan pembeli terendah berasal dari segmen home office
+- Office supplies merupakan category yang paling banyak dibeli dan technology merupakan category yang paling sedikit dibeli
+- Pada Sub kategori, barang lainnya (other) merupakan barang yang paling favorit karena paling banyak dibeli, kemudian diikuti oleh binder (binders) dan kertas (paper). Sedangkan seni (art) adalah barang yang paling sedikit dibeli.
+- Perolehan rata-rata penjualan adalah 229.858; dengan nilai penjualan maksimal sebesar 22638,480 dan nilai penjualan minumum sebesar 0,444
+- Dalam 4 tahun jumlah pesanan maksimum adalah 14 dengan rata-rata jumlah pesanan sebesar 3,79
+- Jumlah diskon maksimum adalah sebesar 80% dengan rata-rata jumlah diskon sebesar 15%
+- Perusahaan pernah merugi hingga 6599.978, pernah mendapatkan keuntungam hingga 8399.976, dan memiliki rata-rata profit sebesar 28.657
+
+
+Melakukan pembuatan plot berdasarkan category
+```{r}
+library(dplyr)
+retail_category <- retail_clean %>% 
+  group_by(Category) %>% 
+  summarise(count_cat = n()) %>% 
+  arrange(desc(count_cat)) %>% 
+  ungroup()
+
+retail_category
+```
+
+```{r}
+library(ggplot2)
+plot <- ggplot(retail_category, aes(x =count_cat , y=  reorder(Category, count_cat))) +
+  geom_col(aes(fill = count_cat)) +
+  scale_fill_gradient(low = "green", high ="black") +
+  labs(title = "Top Category in Retail",
+       x = "sub_category_count",
+       y = NULL) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+plot
+```
+
+
+Melakukan pembuatan plot berdasarkan sub category
+```{r}
+retail_count <- retail_clean %>% 
+  group_by(Sub.Category) %>% 
+  summarise(count_cat = n()) %>% 
+  arrange(desc(count_cat)) %>% 
+  ungroup()
+
+retail_count
+```
+
+```{r}
+plot1 <- ggplot(retail_count, aes(x =count_cat , y=  reorder(Sub.Category, count_cat))) +
+  geom_col(aes(fill = count_cat)) +
+  scale_fill_gradient(low = "red", high ="maroon") +
+  labs(title = "Top Sub Category in Retail",
+       x = "sub_category_count",
+       y = NULL) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+plot1
+```
+
+
